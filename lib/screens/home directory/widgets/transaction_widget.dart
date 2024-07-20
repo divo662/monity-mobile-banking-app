@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:monity/screens/transaction%20directory/widgets/receipt_widget.dart';
+import 'package:monity/screens/home%20directory/widgets/receipt_widget.dart';
 import '../../../res/app_strings.dart';
 import '../../../utils/app_color.dart';
 import '../../../utils/navigator/page_navigator.dart';

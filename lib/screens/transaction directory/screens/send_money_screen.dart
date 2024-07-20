@@ -14,7 +14,8 @@ import '../../../widgets/form_text.dart';
 import '../../../widgets/small_text.dart';
 import '../../home directory/supabase/profile_info_db.dart';
 import '../../home directory/screens/bottom_nav_bar.dart';
-import '../widgets/receipt_widget.dart';
+import '../../home directory/widgets/receipt_widget.dart';
+
 
 class SendMoneyScreen extends StatefulWidget {
   const SendMoneyScreen({super.key});
@@ -308,7 +309,6 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
                                 return;
                               } else {
-                                // Show error dialog for sending money
                                 _showDialog('Error',
                                     'Failed to send money. Please try again later.',
                                         (){
@@ -430,12 +430,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     required String senderAccountNumber,
   }) async {
     try {
-      // Fetch sender's account number using ProfileInfoDb
       final profileInfoDb = ProfileInfoDb();
       final profileInfo = await profileInfoDb.getUserProfileInfo();
       String senderAccountNumber = profileInfo!['account_number'];
 
-      // Validate input parameters
       if (senderAccountNumber.isEmpty ||
           recipientAccountNumber.isEmpty ||
           amount <= 0 ||
@@ -444,14 +442,12 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         throw Exception('Invalid input parameters');
       }
 
-      // Validate the passcode first
       bool isPasscodeValid = await _validatePasscode(passcode);
       if (!isPasscodeValid) {
         _showSnackBar("Invalid passcode");
         return false;
       }
 
-      // Fetch recipient info to validate account number
       Map<String, dynamic>? recipientInfo =
           _recipientInfoCache?[recipientAccountNumber];
       if (recipientInfo == null) {
@@ -462,7 +458,6 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         }
       }
 
-      // Fetch sender's balance to check for sufficient funds
       double senderBalance =
           await profileInfoDb.getUserBalance(senderAccountNumber);
       if (senderBalance < amount) {
@@ -470,14 +465,12 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         return false;
       }
 
-      // Call Supabase RPC function to update the balance
       final response = await supabase.rpc("update_balance", params: {
         'sender_account_number': senderAccountNumber,
         'recipient_account_number': recipientAccountNumber,
         'amount': amount,
       });
 
-      // Log the response for debugging
       if (kDebugMode) {
         print('RPC Response: $response');
       }
@@ -550,7 +543,6 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
         20, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
   }
 
-// Passcode validation function
   Future<bool> _validatePasscode(String passcode) async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {

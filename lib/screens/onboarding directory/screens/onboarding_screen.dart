@@ -47,21 +47,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentPage);
-    _checkOnboardingStatus();
   }
 
-  Future<void> _checkOnboardingStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    bool? isOnboardingComplete = prefs.getBool('isOnboardingComplete');
-
-    if (isOnboardingComplete == true) {
-      NavigationHelper.navigateToReplacement(context, const LoginScreen());
-    }
-  }
 
   Future<void> _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isOnboardingComplete', true);
+    NavigationHelper.navigateToReplacement(context, const LoginScreen());
   }
 
 

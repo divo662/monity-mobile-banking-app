@@ -11,7 +11,8 @@ import '../../../utils/navigator/page_navigator.dart';
 import '../../../widgets/small_text.dart';
 import '../../auth directory/login auth directory/screens/login_screen.dart';
 import '../../home directory/supabase/profile_info_db.dart';
-import '../widgets/transaction_widget.dart';
+import '../../home directory/widgets/transaction_widget.dart';
+
 
 class TransactionPage extends StatefulWidget {
   const TransactionPage({super.key});
@@ -74,8 +75,7 @@ class _TransactionPageState extends State<TransactionPage> {
     final groupedTransactions = <String, List<Map<String, dynamic>>>{};
 
     for (var transaction in transactions) {
-      if (transaction['sender_profile_id'] == userId ||
-          transaction['recipient_profile_id'] == userId) {
+      if (transaction['sender_profile_id'] == userId) {
         final timestamp = DateTime.parse(transaction['timestamp']);
         final dateKey = _formatDateKey(timestamp);
 
@@ -86,6 +86,7 @@ class _TransactionPageState extends State<TransactionPage> {
         }
       }
     }
+
 
     // Sort the grouped transactions by date
     final sortedGroups = groupedTransactions.entries.toList()

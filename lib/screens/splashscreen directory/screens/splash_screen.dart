@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../res/app_icons.dart';
 import '../../../utils/app_color.dart';
 import '../../../utils/navigator/page_navigator.dart';
+import '../../auth directory/login auth directory/screens/login_screen.dart';
 import '../../onboarding directory/screens/onboarding_screen.dart';
 
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -27,14 +29,30 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        NavigationHelper.navigateToPage(
-          context,
-          const OnboardingScreen(),
-        );
-      }
-    });
+    _navigateToNextScreen();
+  }
+
+  Future<void> _navigateToNextScreen() async {
+    await Future.delayed(const Duration(seconds: 5));
+    if (!mounted) return;
+
+    final isFirstLaunch = await _checkFirstLaunch();
+    if (isFirstLaunch) {
+      NavigationHelper.navigateToReplacement(context, const OnboardingScreen());
+    } else {
+      NavigationHelper.navigateToReplacement(context, const LoginScreen());
+    }
+  }
+
+  Future<bool> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+    if (isFirstLaunch) {
+      await prefs.setBool('isFirstLaunch', false);
+    }
+
+    return isFirstLaunch;
   }
 
   @override
@@ -59,6 +77,5 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
-
 }
 

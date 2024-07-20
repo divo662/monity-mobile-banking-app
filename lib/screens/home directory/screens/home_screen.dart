@@ -16,8 +16,8 @@ import '../../../widgets/default_button.dart';
 import '../../../widgets/form_text.dart';
 import '../../../widgets/small_text.dart';
 import '../../auth directory/login auth directory/screens/login_screen.dart';
-import '../../transaction directory/widgets/transaction_widget.dart';
 import '../supabase/profile_info_db.dart';
+import '../widgets/transaction_widget.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'account setup page/profile_setup_page.dart';
@@ -102,19 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
         .select()
         .eq('profile_id', userId)
         .maybeSingle();
-    if (kDebugMode) {
-      print(response);
-    }
     if (response != null && response.isNotEmpty) {
-      if (kDebugMode) {
-        print(response);
-      }
       setState(() {
         isProfileSetup = true;
       });
-    }
-    if (kDebugMode) {
-      print(response);
     }
   }
 
@@ -124,19 +115,10 @@ class _HomeScreenState extends State<HomeScreen> {
         .select()
         .eq('user_id', userId)
         .maybeSingle();
-    if (kDebugMode) {
-      print(response);
-    }
     if (response != null && response.isNotEmpty) {
-      if (kDebugMode) {
-        print(response);
-      }
       setState(() {
         isPasscodeSetup = true;
       });
-    }
-    if (kDebugMode) {
-      print(response);
     }
   }
 
@@ -469,8 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final groupedTransactions = <String, List<Map<String, dynamic>>>{};
 
     for (var transaction in transactions) {
-      if (transaction['sender_profile_id'] == userId ||
-          transaction['recipient_profile_id'] == userId) {
+      if (transaction['sender_profile_id'] == userId) {
         final timestamp = DateTime.parse(transaction['timestamp']);
         final dateKey = _formatDateKey(timestamp);
 
@@ -482,15 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    final sortedGroups = groupedTransactions.entries.toList()
-      ..sort((a, b) {
-        final aDate = DateTime.parse(a.value.first['timestamp']);
-        final bDate = DateTime.parse(b.value.first['timestamp']);
-        return bDate
-            .compareTo(aDate);
-      });
-
-    return sortedGroups.map((entry) {
+    return groupedTransactions.entries.map((entry) {
       return {
         'date': entry.key,
         'transactions': entry.value,
@@ -498,13 +471,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
+
   String _formatDateKey(DateTime date) {
     final westAfricaTimeZone = tz.getLocation('Africa/Lagos');
     final now = tz.TZDateTime.now(westAfricaTimeZone);
-    final today = tz.TZDateTime(westAfricaTimeZone, now.year, now.month, now.day);
+    final today =
+        tz.TZDateTime(westAfricaTimeZone, now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
-    final transactionDate = tz.TZDateTime.from(date.toUtc(), westAfricaTimeZone);
-    final transactionDateOnly = tz.TZDateTime(westAfricaTimeZone, transactionDate.year, transactionDate.month, transactionDate.day);
+    final transactionDate =
+        tz.TZDateTime.from(date.toUtc(), westAfricaTimeZone);
+    final transactionDateOnly = tz.TZDateTime(westAfricaTimeZone,
+        transactionDate.year, transactionDate.month, transactionDate.day);
 
     if (transactionDateOnly == today) {
       return 'Today';
@@ -519,6 +496,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return formattedDate;
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<User?>(
@@ -732,7 +710,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           SizedBox(
                             height: 10.h,
                           ),
-                          if (!isProfileSetup || !isPasscodeSetup)
+                          if (!isProfileSetup && !isPasscodeSetup)
                             Container(
                               height: 120.h,
                               width: double.infinity,
@@ -1042,65 +1020,64 @@ class _HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        if (isProfileSetup && isPasscodeSetup)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SmallText(
-                text: "Account Number:",
-                size: 15.sp,
-                color: AppColor.subColor,
-                fontWeight: FontWeight.w500,
-              ),
-              Row(
-                children: [
-                  SmallText(
-                    text: profileInfo['account_number'] ?? 'no account number',
-                    size: 15.sp,
-                    color: AppColor.subColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(
-                          text: profileInfo['account_number'] ?? ''));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: Colors.transparent,
-                          elevation: 0,
-                          dismissDirection: DismissDirection.startToEnd,
-                          content: Container(
-                            width: 190.w,
-                            height: 56.h,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              borderRadius: BorderRadius.circular(45),
-                              color: Colors.redAccent,
-                            ),
-                            child: Center(
-                              child: Text(
-                                "Account number copied!",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 14.sp,
-                                ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SmallText(
+              text: "Account Number:",
+              size: 15.sp,
+              color: AppColor.subColor,
+              fontWeight: FontWeight.w500,
+            ),
+            Row(
+              children: [
+                SmallText(
+                  text: profileInfo['account_number'] ?? 'no account number',
+                  size: 15.sp,
+                  color: AppColor.subColor,
+                  fontWeight: FontWeight.w500,
+                ),
+                IconButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(
+                        text: profileInfo['account_number'] ?? ''));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        dismissDirection: DismissDirection.startToEnd,
+                        content: Container(
+                          width: 190.w,
+                          height: 56.h,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            borderRadius: BorderRadius.circular(45),
+                            color: Colors.redAccent,
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Account number copied!",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
+                                fontSize: 14.sp,
                               ),
                             ),
                           ),
-                          duration: const Duration(seconds: 2),
                         ),
-                      );
-                    },
-                    icon: const Icon(
-                      Icons.copy_rounded,
-                      color: AppColor.primaryColor,
-                    ),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.copy_rounded,
+                    color: AppColor.primaryColor,
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ],
     );
   }

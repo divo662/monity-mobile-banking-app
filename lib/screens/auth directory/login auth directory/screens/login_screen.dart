@@ -42,16 +42,23 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (!mounted) return;
-
       NavigationHelper.navigateToReplacement(context, BottomNavbarScreen());
     } on AuthException catch (e) {
       setState(() {
         _isLoading = false;
       });
-      String errorMessage = e.statusCode == '400'
-          ? "Invalid Credentials"
-          : "An error occurred. Please try again later.";
+      String errorMessage = "An error occurred. Please try again later.";
+      if (e.statusCode == '400') {
+        errorMessage = "Invalid Credentials";
+      }
+      print('Error: ${e.message}, StatusCode: ${e.statusCode}');
       _showSnackBar(errorMessage);
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Unexpected Error: $e');
+      _showSnackBar("An unexpected error occurred. Please try again later.");
     }
   }
 

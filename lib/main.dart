@@ -1,15 +1,29 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:monity/res/app_routes.dart';
 import 'package:monity/res/app_strings.dart';
+import 'package:monity/screens/splashscreen%20directory/screens/splash_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/services/notification_services_settings.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'core/utils/transaction_notify_manager.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'dart:async';
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  }
+}
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kDebugMode) {
+    HttpOverrides.global = MyHttpOverrides();
+  }
 
   tz.initializeTimeZones();
 
@@ -27,49 +41,28 @@ Future<void> main() async {
     transactionNotificationManager.startListening(userId);
   }
 
-  final prefs = await SharedPreferences.getInstance();
-  final bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
-
-  runApp(Monity(isFirstLaunch: isFirstLaunch));
+  runApp(const Monity());
 }
+
 final supabase = Supabase.instance.client;
 
 class Monity extends StatelessWidget {
-  final bool isFirstLaunch;
-
-  const Monity({super.key, required this.isFirstLaunch});
+  const Monity({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<SharedPreferences>(
-      future: SharedPreferences.getInstance(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          final bool isFirstLaunch = snapshot.data?.getBool('first_launch') ?? true;
-
-          return ScreenUtilInit(
-            designSize: const Size(375, 812),
-            builder: (context, child) {
-              return MaterialApp(
-                debugShowCheckedModeBanner: false,
-                title: AppStrings.appName,
-                routes: AppRoutes.routes,
-                initialRoute: isFirstLaunch
-                    ? AppRoutes.onboardingScreen
-                    : AppRoutes.loginScreen,
-                onGenerateRoute: AppRoutes.generateRoute,
-              );
-            },
-          );
-        } else {
-          return const MaterialApp(
-            title: AppStrings.appName,
-            debugShowCheckedModeBanner: false,
-            home: Center(child: CircularProgressIndicator()),
-          );
-        }
+    return ScreenUtilInit(
+      designSize: const Size(375, 812),
+      builder: (context, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: AppStrings.appName,
+          home: const SplashScreen(),
+          routes: AppRoutes.routes,
+          onGenerateRoute: AppRoutes.generateRoute,
+        );
       },
     );
   }
-
 }
+
